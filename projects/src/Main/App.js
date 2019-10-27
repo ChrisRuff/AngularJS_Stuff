@@ -7,10 +7,10 @@ import Home from './Home.js'
 import Style from './App.css'
 const App = () => {
   return (
-    <div className="App">
+    <span className="App">
         <Navigation />
         <Main />
-    </div>
+    </span>
   );
 }
 
