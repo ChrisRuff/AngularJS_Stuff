@@ -1,6 +1,5 @@
 import React from "react"
-import Rectangle from "react-rectangle";
-import itemStyle from "./ArrayStyle.css"
+import "./ArrayStyle.css";
 
 class ArraySorter extends React.Component
 {
@@ -8,25 +7,45 @@ class ArraySorter extends React.Component
     {
         super(props);
         this.state = {
-            data: this.listOfRectangles(5, 600, 5)
+            data: this.listOfRectangles(5, 600, 5),
+            num: 5
         };
-        this.count = 0;
+        this.editable = true;
+
+        this.timer = null;
     }
     render()
     {
         return(
         <div>
-            <ul>
+            <ul className="arrayContainer">
                 {this.state.data}
             </ul>
-            <button onClick={() => this.plus()}>Add a Rectangle</button>
-            <button onClick={() => this.selectionSort()}>Selection Sort</button>
-            <button onClick={() => this.removeFirst()}>Remove first</button>
+            <div name="manipulations" style={{display: "block", float: "left"}}>
+                <button className="button" disabled={this.editable?false:true} onClick={() => this.selectionSort()}>Selection Sort</button>
+                <button className="button" disabled={this.editable?false:true} onClick={() => this.removeFirst()}>Remove first</button>
+                <button className="button" disabled={this.editable?false:true} onClick={() => this.clear()}>Clear</button>
+            </div>
+            <br/><br/><br/><br/><br/>
+            <div style={{display: "block", float: "left"}}>
+                <button className="button" onClick={() => this.plus()}>Add a Rectangle</button>
+
+                <button className="button" onClick={() => this.plus(this.state.num)}>Add __ Rectangles</button>
+                <input placeholder="5" name="num" value={this.state.num} onChange={evt => this.updateNum(evt)} className="button" type="number"/>
+            </div>
+
         </div>);
     }
-    plus()
+    updateNum(evt)
     {
-        this.state.data.push(this.listOfRectangles(5,600,1)[0]);
+        this.setState({
+            num: evt.target.value
+        });
+    }
+    plus(num=1)
+    {
+        for(let i = 0; i < num; i++)
+            this.state.data.push(this.listOfRectangles(5,600,1)[0]);
         this.update();
     }
     update()
@@ -34,34 +53,34 @@ class ArraySorter extends React.Component
         this.setState({
             data: this.state.data
         });
+        if(this.state.data.length < 1)
+            this.editable = false;
+        else
+            this.editable = true;
     }
     selectionSort()
     {
-
+        this.timer = setInterval(() => this.selectTick(), 500);
+    }
+    selectTick()
+    {
         let len = this.state.data.length;
-        console.log("height: " + this.state.data[0].key + "\nLength: " + len);
-        for (let i = 0; i < len; i++) {
+        let abort = false;
+        for (let i = 0; i < len && !abort; i++) {
             let min = i;
-
-            for (let j = i + 1; j < len; j++) {
-                if (this.state.data[min].key > this.state.data[j].key) {
+            for (let j = i + 1; j < len; j++)
+            {
+                if (this.state.data[i].props.height > this.state.data[j].props.height)
+                {
                     min = j;
+                    abort = true;
                 }
             }
-
-            if (min !== i) {
-                let tmp = this.state.data[i];
-                this.state.data[i] = this.state.data[min];
-                this.state.data[min] = tmp;
-                this.update();
-
-            }
-
-
-
-
+            if(i !== min)
+                this.change(i, min);
+            if(i >= len-1)
+                clearInterval(this.timer);
         }
-
     }
     sleep(milliseconds)
     {
@@ -75,9 +94,16 @@ class ArraySorter extends React.Component
     }
     removeFirst()
     {
-        this.state.data[0] = this.state.data[this.state.data.length-1];
+        let len = this.state.data.length;
+        for(let i = 0; i < len-1; i++)
+            this.state.data[i] = this.state.data[i+1];
         this.state.data.pop();
         this.update();
+    }
+    clear()
+    {
+        this.setState({data: []});
+        this.editable = false;
     }
 
     change(x, y)
@@ -85,6 +111,8 @@ class ArraySorter extends React.Component
         let tmp = this.state.data[x];
         this.state.data[x] = this.state.data[y];
         this.state.data[y] = tmp;
+        this.update()
+
     }
 
     listOfRectangles(x, y, num)
@@ -94,22 +122,19 @@ class ArraySorter extends React.Component
         {
             let height = this.randomNum(0, y);
             array.push(
-                <li key={height} style={{float: "Left", background: '#9e9e9e', width: x, height: height }}>{this.rectangle(x,height)}</li>
+                <li height={height}
+                    className="element"
+                    style={{width: x, height: height}}
+                >
+                    <span className="height-text">{height}</span>
+                </li>
             );
         }
         return (array);
     }
-    rectangle(x, y)
-    {
-        return (
-            <Rectangle aspectRatio={[5, 3]}>
-                <div style={{ background: '#607d8b', width: '100%', height: '100%' }} />
-            </Rectangle>
-        );
-    }
     randomNum(min, max)
     {
-        return (Math.random() * max) + min;
+        return Math.floor((Math.random() * max) + min);
     }
 }
 
