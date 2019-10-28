@@ -5,17 +5,11 @@
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/build/asset-manifest.json" beforeDir="false" afterPath="$PROJECT_DIR$/build/asset-manifest.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/build/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/build/index.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build/precache-manifest.895c0b2c4382ac16884e19d756eccaf4.js" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/build/service-worker.js" beforeDir="false" afterPath="$PROJECT_DIR$/build/service-worker.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build/static/js/2.8ca64262.chunk.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/build/static/js/2.8ca64262.chunk.js.map" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/build/static/js/main.46d04b0e.chunk.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/build/static/js/main.46d04b0e.chunk.js.map" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/static/css/main.f7785812.chunk.css" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/static/css/main.f7785812.chunk.css.map" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/node_modules/gh-pages/.cache/github.com!ChrisRuff!ReactJS_Stuff.git" beforeDir="false" afterPath="$PROJECT_DIR$/node_modules/gh-pages/.cache/github.com!ChrisRuff!ReactJS_Stuff.git" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/package-lock.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/package.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/ArraySorter/ArraySorter.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/ArraySorter/ArraySorter.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/ArraySorter/ArrayStyle.css" beforeDir="false" afterPath="$PROJECT_DIR$/src/ArraySorter/ArrayStyle.css" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -103,6 +97,7 @@
       <workItem from="1572135130511" duration="7495000" />
       <workItem from="1572146600347" duration="257000" />
       <workItem from="1572218150936" duration="11946000" />
+      <workItem from="1572260442368" duration="135000" />
     </task>
     <servers />
   </component>

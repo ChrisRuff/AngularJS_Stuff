@@ -70,7 +70,7 @@ class ArraySorter extends React.Component
             let min = i;
             for (let j = i + 1; j < len; j++)
             {
-                if (this.state.data[i].props.height > this.state.data[j].props.height)
+                if (this.state.data[min].props.height > this.state.data[j].props.height)
                 {
                     min = j;
                     abort = true;
