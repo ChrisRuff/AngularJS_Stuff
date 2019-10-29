@@ -1,4 +1,5 @@
 import React from "react"
+import Element from "./Element.js"
 import "./ArrayStyle.css";
 
 class ArraySorter extends React.Component
@@ -6,13 +7,14 @@ class ArraySorter extends React.Component
     constructor(props)
     {
         super(props);
+        this.myRefs = [];
         this.state = {
             data: this.listOfRectangles(5, 600, 5),
             num: 5
         };
         this.editable = true;
-
         this.timer = null;
+
     }
     render()
     {
@@ -60,7 +62,8 @@ class ArraySorter extends React.Component
     }
     selectionSort()
     {
-        this.timer = setInterval(() => this.selectTick(), 500);
+
+        this.timer = setInterval(() => {this.selectTick(); }, 500);
     }
     selectTick()
     {
@@ -68,6 +71,11 @@ class ArraySorter extends React.Component
         let abort = false;
         for (let i = 0; i < len && !abort; i++) {
             let min = i;
+
+            for(let k = 0; k < i; k++)
+                this.myRefs[k].deselect();
+
+            this.myRefs[i].select();
             for (let j = i + 1; j < len; j++)
             {
                 if (this.state.data[min].props.height > this.state.data[j].props.height)
@@ -76,10 +84,13 @@ class ArraySorter extends React.Component
                     abort = true;
                 }
             }
-            if(i !== min)
+            if(i != min)
                 this.change(i, min);
             if(i >= len-1)
+            {
+                this.myRefs[i].deselect();
                 clearInterval(this.timer);
+            }
         }
     }
     sleep(milliseconds)
@@ -96,23 +107,28 @@ class ArraySorter extends React.Component
     {
         let len = this.state.data.length;
         for(let i = 0; i < len-1; i++)
+        {
             this.state.data[i] = this.state.data[i+1];
+            this.myRefs[i] = this.myRefs[i+1];
+        }
+
         this.state.data.pop();
+        this.myRefs.pop();
         this.update();
     }
     clear()
     {
         this.setState({data: []});
         this.editable = false;
+        this.myRefs = [];
     }
 
     change(x, y)
     {
-        let tmp = this.state.data[x];
+        let el = this.state.data[x];
         this.state.data[x] = this.state.data[y];
-        this.state.data[y] = tmp;
-        this.update()
-
+        this.state.data[y] = el;
+        this.update();
     }
 
     listOfRectangles(x, y, num)
@@ -122,14 +138,14 @@ class ArraySorter extends React.Component
         {
             let height = this.randomNum(0, y);
             array.push(
-                <li height={height}
-                    className="element"
-                    style={{width: x, height: height}}
-                >
-                    <span className="height-text">{height}</span>
-                </li>
+                <Element
+                    ref={(ref)=>{if(ref!=null && !this.myRefs.includes(ref)){this.myRefs.push(ref)}}}
+                    height={height}
+                    x={x}
+                />
             );
         }
+        console.log(this.myRefs);
         return (array);
     }
     randomNum(min, max)

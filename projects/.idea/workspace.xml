@@ -6,8 +6,6 @@
       <change beforePath="$PROJECT_DIR$/build/asset-manifest.json" beforeDir="false" afterPath="$PROJECT_DIR$/build/asset-manifest.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/build/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/build/index.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/build/service-worker.js" beforeDir="false" afterPath="$PROJECT_DIR$/build/service-worker.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build/static/css/main.f7785812.chunk.css" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/build/static/css/main.f7785812.chunk.css.map" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/node_modules/gh-pages/.cache/github.com!ChrisRuff!ReactJS_Stuff.git" beforeDir="false" afterPath="$PROJECT_DIR$/node_modules/gh-pages/.cache/github.com!ChrisRuff!ReactJS_Stuff.git" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/ArraySorter/ArraySorter.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/ArraySorter/ArraySorter.js" afterDir="false" />
     </list>
@@ -97,7 +95,8 @@
       <workItem from="1572135130511" duration="7495000" />
       <workItem from="1572146600347" duration="257000" />
       <workItem from="1572218150936" duration="11946000" />
-      <workItem from="1572260442368" duration="135000" />
+      <workItem from="1572260442368" duration="219000" />
+      <workItem from="1572303544289" duration="9186000" />
     </task>
     <servers />
   </component>
@@ -116,16 +115,5 @@
         </entry>
       </map>
     </option>
-  </component>
-  <component name="XDebuggerManager">
-    <breakpoint-manager>
-      <breakpoints>
-        <line-breakpoint enabled="true" type="javascript">
-          <url>file://$PROJECT_DIR$/src/ArraySorter/ArraySorter.js</url>
-          <line>3</line>
-          <option name="timeStamp" value="2" />
-        </line-breakpoint>
-      </breakpoints>
-    </breakpoint-manager>
   </component>
 </project>
