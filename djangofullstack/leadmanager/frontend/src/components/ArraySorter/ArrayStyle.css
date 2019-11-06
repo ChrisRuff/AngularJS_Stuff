@@ -1,0 +1,56 @@
+ .element
+ {
+     position: relative;
+     float: left;
+     background-color: cornflowerblue;
+     color: antiquewhite;
+     border-color: #09d3ac;
+ }
+.element:hover
+{
+    background: lightblue;
+    border-style: solid;
+    border-width: 5px;
+    border-color: deepskyblue;
+}
+.height-text
+{
+     visibility: hidden;
+     width: 15px;
+     background-color: orange;
+     color: #111111;
+     text-align: center;
+     padding: 5px 3px;
+     border-radius: 6px;
+
+     position: inherit;
+     z-index: 1;
+}
+.element:hover .height-text
+{
+     visibility: visible;
+}
+
+.arrayContainer
+{
+    height: 650px;
+}
+.button
+{
+     border: none;
+     padding: 15px 32px;
+     display: inline-block;
+     border-radius: 50px;
+     float: left;
+     box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19);
+     font-size: xx-large;
+     shape-rendering: optimizeSpeed;
+     fill: azure;
+}
+.button:hover {background-color: #3e8e41}
+
+.button:active {
+     background-color: #3e8e41;
+     box-shadow: 0 5px #666;
+     transform: translateY(4px);
+}
