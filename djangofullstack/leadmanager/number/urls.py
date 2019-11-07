@@ -1,6 +1,6 @@
-from rest_framework import routers
-from .api import NumberViewSet
+from django.urls import path, include
+from .api import NumberAPI
 
-router = routers.DefaultRouter()
-router.register('api/number', NumberViewSet, 'number')
-urlpatterns = router.urls
+urlpatterns = [
+    path('api/number', NumberAPI.as_view())
+]

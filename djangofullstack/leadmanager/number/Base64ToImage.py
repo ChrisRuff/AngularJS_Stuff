@@ -1,12 +1,16 @@
 from PIL import Image
 from io import BytesIO
+import os
 import cv2
 import base64
 import tensorflow as tf
 import numpy as np
 
-
-myModel = tf.keras.models.load_model("simplenetowrk.h5")
+dirpath = os.getcwd()
+print("current directory is : " + dirpath)
+foldername = os.path.basename(dirpath)
+print("Directory name is : " + foldername)
+myModel = tf.keras.models.load_model("./simplenetowrk.h5")
 
 
 def convert(base64Data):
@@ -21,8 +25,6 @@ def predict(base64Data):
     data = data[:, :, 3]
     resized = cv2.resize(data, dsize=(28, 28))
     test_data = np.asarray(resized)
-    cv2.imshow('ImageWindow', test_data)
-    cv2.waitKey(0)
     test_data = test_data.reshape((1, 28, 28))
     # test_data = np.expand_dims(test_data, axis=0)
     # test_data = tf.image.decode_png(reshaped, dtype=tf.dtypes.float32)
@@ -32,4 +34,5 @@ def predict(base64Data):
     predictions = myModel.predict(test_data)
     print(predictions)
     predictions_argmax = np.argmax(predictions, axis=-1)
+    print(predictions_argmax)
     return predictions_argmax
