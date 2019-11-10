@@ -37,6 +37,7 @@
     "redux-devtools-extension": "^2.13.8",
     "redux-thunk": "^2.3.0",
     "three": "^0.110.0",
-    "webgl": "0.0.7"
+    "webgl": "0.0.7",
+    "yuka": "0.0.4"
   }
 }
