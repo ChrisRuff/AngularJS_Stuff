@@ -27,22 +27,25 @@ export class NumberRecognition extends React.Component
             <div align="center" style={{background: 'gray',
                                         height: '500px' }} >
                 <h1>Draw a single digit number and let the computer predict it</h1>
-                <div style={{height: '28px', width: '28px'}}>
-                  <DrawableCanvas ref={this.canvas}/>
+                <div style={{height: '252px', width: '200px', background: 'white'}}>
+                  <DrawableCanvas
+                    ref={this.canvas}
+                    lineWidth={10}>
+                  </DrawableCanvas>
                 </div>
                 <button onClick={()=>{this.predict()}}>What number?</button>
                 <button onClick={()=>{this.clearCanvas()}}>Clear</button>
                 <br/>
-                <img src={this.state.drawing}></img>
-                <br/>
+                <h3>The larger you make your digit the better the prediction will be</h3>
                 <h2> Prediction is {this.state.prediction}</h2>
             </div>
             )
     }
-    predict()
+    async predict()
     {
       let drawing = this.canvas.current.state.canvas.toDataURL();
       this.props.predictNum({"image":drawing})
+      await this.sleep(500);
       this.setState({drawing: drawing,
                      prediction: prediction});
       console.log(this.state)
@@ -54,10 +57,16 @@ export class NumberRecognition extends React.Component
       const context = canvas.getContext('2d');
       context.clearRect(0, 0, canvas.width, canvas.height);
     }
+    sleep (time)
+    {
+        return new Promise((resolve) => setTimeout(resolve, time));
+    }
 }
 
-const mapStateToProps = (state) => {
+const mapStateToProps = (state, myProps) => {
   prediction = (state.predict.prediction[state.predict.prediction.length - 1]);
   return({
-    prediction: state.predict
+    prediction: prediction
 })};
+
+export default connect(mapStateToProps, { predictNum })(NumberRecognition);

@@ -9,8 +9,8 @@ class ArraySorter extends React.Component
         super(props);
         this.myRefs = [];
         this.state = {
-            rectangles: 5,
-            data: this.listOfRectangles(5, 600, 5),
+            rectangles: 100,
+            data: this.listOfRectangles(5, 600, 100),
             num: 15,
             speed: 10
         };
@@ -61,7 +61,7 @@ class ArraySorter extends React.Component
                     Quick Sort
                 </button>
                 <Slider
-                    change={(speed)=>this.setState({speed: 30-speed})}
+                    change={(speed)=>this.setState({speed: 250-speed})}
                 />
             </div>
         </div>);
@@ -98,7 +98,7 @@ class ArraySorter extends React.Component
         this.myRefs[i].select();
         for (let j = i + 1; j < len; j++)
         {
-            await this.sleep(this.state.speed * 20);
+            await this.sleep(this.state.speed * 5);
             this.myRefs[j].highlight();
             if (this.state.data[min].props.height > this.state.data[j].props.height)
             {

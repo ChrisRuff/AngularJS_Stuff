@@ -4,7 +4,7 @@ class Slider extends React.Component {
     constructor(props) {
         super(props)
         this.state = {
-            sliderValue: 5,
+            sliderValue: 100,
         }
     }
 

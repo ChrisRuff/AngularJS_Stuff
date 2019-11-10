@@ -22,6 +22,9 @@ export default class Header extends Component
             <li className="nav-item">
               <Link className="nav-link" to="/NumberPredictor">Number Predictor</Link>
             </li>
+            <li className="nav-item">
+              <Link className="nav-link" to="/Evolution">Evolution</Link>
+            </li>
           </ul>
         </div>
       </nav>    )
