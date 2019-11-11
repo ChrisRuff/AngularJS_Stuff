@@ -1,16 +1,23 @@
 import React, { Component } from "react";
 import * as THREE from "three";
 import * as YUKA from "yuka";
+import Entity from "./Entity";
+import Food from "./Food";
+import Tree from "./Tree";
 import { OrbitControls } from './OrbitControls.js';
 
 class Evolution extends Component
 {
-
-
-
+  constructor()
+  {
+    super();
+    this.time = new YUKA.Time();
+  }
   componentDidMount(){
     const width = this.mount.clientWidth
     const height = this.mount.clientHeight
+    this.cycleTime = 30;
+    this.cycle = 0;
     //ADD SCENE
     this.scene = new THREE.Scene()
     this.scene.background = new THREE.Color( 0xcccccc );
@@ -32,94 +39,47 @@ class Evolution extends Component
 
     //GAME SETUP
     this.entityManager= new YUKA.EntityManager();
-    this.time = new YUKA.Time();
 
-    //DEFINE MATERIAL AND GEOMETRIES
-    const treeGeo  = new THREE.CylinderBufferGeometry(0, 10, 30, 4, 1);
-    const treeMat = new THREE.MeshPhongMaterial({ color: 0xffffff, flatShading: true });
-    const foodMat = new THREE.MeshBasicMaterial({color: 0x0000ff})
-    const foodGeo = new THREE.BoxBufferGeometry( 5, 5, 5 );
-    const entityMat = new THREE.MeshNormalMaterial({color: 0xff0000});
-    const entityGeo = new THREE.BoxBufferGeometry( 5,10,5);
+        //DEFINE MATERIAL AND GEOMETRIES
+    this.treeGeo  = new THREE.CylinderBufferGeometry(0, 10, 30, 4, 1);
+    this.treeMat = new THREE.MeshPhongMaterial({ color: 0xffffff, flatShading: true });
 
     let numTrees = 500;
-    let numFood = 100;
+    let numFood = 250;
     this.trees = new Array(numTrees);
-    for(let i = 0; i < numTrees; ++i)
-      this.trees[i] = new Array(2);
     this.food = new Array(numFood);
-    for(let i = 0; i < numFood; ++i)
-        this.food[i] = new Array(2);
+    this.entities = [];
 
     //Generate Trees and food pickups
     for(let i = 0; i < numTrees; i++)
     {
       //Add the meshs to the scene
-      treeGeo.computeBoundingSphere();
-      this.trees[i][0] = new THREE.Mesh(treeGeo, treeMat);
-      this.trees[i][0].position.x = Math.random() * 1600 - 800;
-      this.trees[i][0].position.y = 0;
-      this.trees[i][0].position.z = Math.random() * 1600 -  800;
-      this.trees[i][0].updateMatrix();
-      this.trees[i][0].boundingRadius = treeGeo.boundingSphere.radius;
-      this.scene.add(this.trees[i][0]);
+      this.treeGeo.computeBoundingSphere();
+      this.trees[i] = new Tree(this.treeGeo, this.treeMat);
+      this.trees[i].mesh.boundingRadius = this.treeGeo.boundingSphere.radius;
+      this.scene.add(this.trees[i].mesh);
       //Add them as entities
-      this.trees[i][1] = new YUKA.GameEntity();
-      this.trees[i][1].setRenderComponent(this.trees[i][0], this.sync)
-      this.trees[i][1].position.copy(this.trees[i][0].position);
-      this.trees[i][1].boundingRadius = treeGeo.boundingSphere.radius;
-      this.entityManager.add(this.trees[i][1]);
+      this.trees[i].setRenderComponent(this.trees[i].mesh, this.sync)
+      this.trees[i].boundingRadius = this.treeGeo.boundingSphere.radius;
+      this.entityManager.add(this.trees[i]);
     }
 
     //Generate Food
-    for(let i = 0; i < 100; i++)
+    for(let i = 0; i < numFood; i++)
     {
-      this.food[0][i] = new THREE.Mesh(foodGeo, foodMat);
-      this.food[0][i].position.x = Math.random() * 1600 - 800;
-      this.food[0][i].position.y = 0;
-      this.food[0][i].position.z = Math.random() * 1600 - 800;
-      this.food[0][i].updateMatrix();
-      this.scene.add(this.food[0][i]);
+      this.food[i] = new Food();
+      this.scene.add(this.food[i].mesh);
 
-
-      this.food[1][i] = new YUKA.GameEntity();
-      this.food[1][i].setRenderComponent(this.food[0][i], this.sync);
-      this.food[1][i].position.copy(this.food[0][i].position);
-      this.entityManager.add(this.food[1][i]);
+      this.food[i].setRenderComponent(this.food[i].mesh, this.sync);
+      this.entityManager.add(this.food[i]);
     }
-    //Make the player
-    entityGeo.computeBoundingSphere();
-    this.playerMesh = new THREE.Mesh(entityGeo, entityMat);
-    this.scene.add(this.playerMesh);
-    this.player = new YUKA.Vehicle();
-    this.player.maxSpeed = 10;
-    this.player.boudingRadius = entityGeo.boundingSphere.radius;
-    //this.player.smoother = new YUKA.Smoother(20);
-    this.player.setRenderComponent(this.playerMesh, this.sync);
-
-    //Make the player go for the closest food
-    if(this.target == null)
+    //Make the entities
+    for(let i = 0; i < 25; ++i)
     {
-      this.target = this.food
-    }
-    else if(this.target.position == this.player.position)
-    {
-      this.scene.remove(this.target)
-      this.entityManager.remove(this.target)
+      this.addEntity(this.food, this.trees);
     }
 
-    //Seeking behaviour
-    const arriveBehaviour = new YUKA.ArriveBehavior(this.target.position);
-    this.player.steering.add(arriveBehaviour);
-    //Wander behaviour
-    // const wanderBehaviour = new YUKA.WanderBehavior(50, 100, 2);
-    // this.player.steering.add(wanderBehaviour);
-    //Obstacle Avoidance
-    const obstacleAvoidance = new YUKA.ObstacleAvoidanceBehavior(this.trees[0]);
-    this.player.steering.add(obstacleAvoidance);
 
-    console.log(this.player.steering.behaviors[0]);
-    this.entityManager.add(this.player);
 
 
     //Controls for orbit
@@ -133,62 +93,118 @@ class Evolution extends Component
 
     this.start()
   }
-componentWillUnmount(){
-    this.stop()
-    this.mount.removeChild(this.renderer.domElement)
+  addEntity(food, obstacles, genes)
+  {
+    this.entities.push(new Entity(food, obstacles, genes));
+
+    let i = this.entities.length -1; 
+    this.scene.add(this.entities[i].mesh);
+    this.entities[i].setRenderComponent(this.entities[i].mesh, this.sync);
+    this.entityManager.add(this.entities[i]);
   }
-
-
-
-start = () => {
-    if (!this.frameId) {
-      this.frameId = requestAnimationFrame(this.animate)
+  componentWillUnmount(){
+      this.stop()
+      this.mount.removeChild(this.renderer.domElement)
     }
-  }
-stop = () => {
-    cancelAnimationFrame(this.frameId)
-  }
-sync( entity, renderComponent)
-{
-  renderComponent.matrix.copy(entity.worldMatrix);
-}
 
-animate = () => {
-   this.frameId = window.requestAnimationFrame(this.animate);
-   this.player.position = this.playerMesh.position;
-   const delta = this.time.update().getDelta();
-   this.entityManager.update(delta);
-   this.controls.update();
-   this.renderScene();
- }
-renderScene = () => {
-  this.renderer.render(this.scene, this.camera)
-}
-
-getClosestFood(food1, food2)
-{
-  let relLocation1 = (food1.position.x - this.playerMesh.position.x) + (food1.position.x - this.playerMesh.position.z);
-  let relLocation2 = (food2.position.x - this.playerMesh.position.x) + (food2.position.x - this.playerMesh.position.z);
-  if(relLocation1 > relLocation2)
+  start = () => {
+      if (!this.frameId) {
+        this.frameId = requestAnimationFrame(this.animate)
+      }
+    }
+  stop = () => {
+      cancelAnimationFrame(this.frameId)
+    }
+  sync( entity, renderComponent)
   {
-    return food2;
+    renderComponent.matrix.copy(entity.worldMatrix);
   }
-  else
+
+  animate = () => {
+     this.frameId = window.requestAnimationFrame(this.animate);
+     const delta = this.time.update().getDelta();
+     this.entityManager.update(delta);
+     this.controls.update();
+     this.renderScene();
+     this.checkForFlags();
+     this.forceUpdate();
+  }
+  renderScene = () => {
+    this.renderer.render(this.scene, this.camera)
+  }
+
+  reset()
   {
-    return food1;
+    //Increments the cycle
+    this.cycle++;
+
+    //Picks the best entitiy for breeding
+    this.bestEntity = this.entities[0];
+    for(let i = 0; i < this.entities.length; ++i)
+    {
+      if(this.bestEntity.energy < this.entities[i].energy)
+      {
+        this.bestEntity = this.entities[i];
+      }
+    }
+
+    //Clears all the entities
+    for(let i = 0; i < this.entities.length; ++i)
+    {
+        this.entities[i].dead = true;
+    }
+    for(let i = 0; i < 25; ++i)
+      this.addEntity(this.food, this.trees, this.bestEntity.genes)
+    console.log("Replicating Gene: ");
+    console.log(this.bestEntity.genes);
+  }
+  checkForFlags()
+  {
+    for(let i = 0; i < this.entities.length; ++i)
+    {
+      if(this.entities[i].dead)
+      {
+        this.scene.remove(this.entities[i].mesh);
+        this.entities.splice(i, 1);
+      }
+    }
+    for(let i = 0; i < this.food.length;++i)
+    {
+      if(this.food[i].eaten)
+      {
+        this.scene.remove(this.food[i].mesh);
+        this.food.splice(i, 1);
+        //Replace the food
+        this.food.push(new Food(this.foodGeo, this.foodMat));
+        this.scene.add(this.food[this.food.length-1].mesh);
+
+        this.food[this.food.length-1].setRenderComponent(this.food[this.food.length-1].mesh, this.sync);
+        this.entityManager.add(this.food[this.food.length-1]);
+      }
+
+    }
+    if((Math.round(((this.cycleTime * (this.cycle+1)) - this.time.getElapsed())*100)/100).toFixed(2) <= 0)
+    {
+      this.reset();
+    }
+
+
   }
 
-}
 
 
-render(){
-    return(
-      <div
-        style={{ width: window.screen.width, height: window.screen.height-200 }}
-        ref={(mount) => { this.mount = mount }}
-      />
-    )
-  }
+  render(){
+      return(
+
+        <div
+          style={{ width: window.screen.width, height: window.screen.height-200 }}
+          ref={(mount) => { this.mount = mount }}
+        >
+        <label style={{paddingRight: '10px'}}>Time left: {(Math.round(((this.cycleTime * (this.cycle+1)) - this.time.getElapsed())*100)/100).toFixed(2)}</label>
+        <label>Entities Remaining: {this.entities !== undefined ? this.entities.length : ""}</label>
+      </div>
+      )
+    }
 
 }
 export default Evolution;

@@ -1,5 +1,5 @@
 {
-	"presets": [["@babel/preset-env", { "useBuiltIns": "entry" }], "@babel/preset-react"],
+	"presets": [["@babel/preset-env", { "useBuiltIns": "entry", "targets": { "node": true}}], "@babel/preset-react"],
 	"plugins": ["transform-class-properties",
 		["@babel/plugin-transform-runtime",
 	      {
