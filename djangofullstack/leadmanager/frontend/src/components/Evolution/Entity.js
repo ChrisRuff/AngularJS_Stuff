@@ -3,20 +3,26 @@ import * as THREE from "three";
 import Genes from "./Genes";
 export default class Entity extends Vehicle
 {
-  constructor(foodMap, obstacles, genes)
+  constructor(foodMap, obstacles, genes, world)
   {
     super();
+    this.world = world;
+
     //Represent the genes of the entity
     if(genes == null)
     {
-      this.genes = new Genes(0.5, 50, 50, 0.15);
+      this.genes = new Genes(1, 50, 50, 0.5);
     }
-    else {
+    else
+    {
       this.genes = genes;
     }
+    //Mutate the genes (only actual changes the genes a percentage of the time)
     this.genes.mutate();
     this.genesSet = this.genes.getGenes();
-    //Encode a color based on the genes
+
+    //Encode a color and size based on the genes
+    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     var rgbToHex = function (rgb) {
       var hex = Number(rgb).toString(16);
       if (hex.length < 2) {
@@ -30,13 +36,14 @@ export default class Entity extends Vehicle
       var blue = rgbToHex(b);
       return "#"+red+green+blue;
     };
-    const color = fullColorHex(255-20*Math.round(this.genesSet.speed),
-                               20*Math.round(this.genesSet.speed),
-                               20*Math.round(this.genesSet.speed));
-    const size = new THREE.Vector3(.125*Math.round(this.genesSet.senseArea),
-                                   .250*Math.round(this.genesSet.senseArea),
-                                   .125*Math.round(this.genesSet.senseArea))
-    console.log(color);
+
+    let color = fullColorHex((20 * this.genesSet.speed),
+                               100,
+                               100);
+    let size = new THREE.Vector3(10,
+                                (this.genesSet.senseArea-30).toFixed(2),
+                                10)
+    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     //Create the meshs and geometry for the entity
     this.mat = new THREE.MeshBasicMaterial({color: color});
@@ -47,24 +54,28 @@ export default class Entity extends Vehicle
 
     //Setup variables used for later
     this.dead = false;
+    this.hasEaten = false;
+    this.reproduce = false;
+    this.survived = false;
     this.energy =  1000;
     this.obstacles = obstacles;
     this.foodMap = foodMap
 
-    //Place the entity randomly on the map
-    this.mesh.position.x = Math.random() * 1600 - 800;
-    this.mesh.position.z = Math.random() * 1600 - 800;
+    //Place the entity randomly on the map around the perimeter
+    let place = Math.floor(Math.random() * world.perimeter.length);
+    this.spawn = world.perimeter[place];
+    this.mesh.position.x = world.perimeter[place][0];
+    this.mesh.position.z = world.perimeter[place][1];
     this.mesh.position.y = 0;
 
     //Create an avoidance behavior
     this.ObstacleAvoidanceBehavior = new ObstacleAvoidanceBehavior(obstacles);
     this.steering.add(this.ObstacleAvoidanceBehavior);
   }
-
   update(delta)
   {
     this.position = this.mesh.position;
-    if(!this.dead)
+    if(!this.dead && !this.survived)
     {
       if(this.target != null)
       {
@@ -86,6 +97,14 @@ export default class Entity extends Vehicle
   }
   move(aim, target=null)
   {
+    if(aim.x >= this.world.worldSize[0][1]
+       || aim.x <= this.world.worldSize[0][0]
+       || aim.z >= this.world.worldSize[1][1]
+       || aim.z <= this.world.worldSize[1][0])
+    {
+      this.point = null;
+      return;
+    }
     if(aim.x > this.mesh.position.x)
       this.mesh.position.x += this.genesSet.speed;
     else
@@ -94,7 +113,6 @@ export default class Entity extends Vehicle
       this.mesh.position.z += this.genesSet.speed;
     else
       this.mesh.position.z -= this.genesSet.speed;
-
     if(target != null)
     {
       let locationDiff = [Math.abs(aim.x - this.mesh.position.x), Math.abs(aim.z- this.mesh.position.z)]
@@ -104,28 +122,65 @@ export default class Entity extends Vehicle
       }
     }
   }
-
   eat(target)
   {
-    this.energy += 1000;
-    target.eat();
-    this.target = null;
+    if(!target.eaten)
+    {
+      target.eat();
+      if(this.hasEaten)
+        this.reproduce = true;
+      this.hasEaten = true;
+      console.log("ate")
+      this.energy += 1000;
+      this.target = null;
+    }
   }
   findNextFood()
   {
-    for(let i = 0; i < this.foodMap.length; ++i)
+    const spawnLocation = new THREE.Vector3(this.spawn[0], 0, this.spawn[1]);
+    if(!this.reproduce)
     {
-      let foodLoc = this.foodMap[i].position;
-      let foodRelative = [Math.abs(foodLoc.x - this.mesh.position.x),
-                          Math.abs(foodLoc.z - this.mesh.position.z)];
-
-      if(foodRelative[0] < this.genesSet.senseArea && foodRelative[1] < this.genesSet.senseArea)
+      for(let i = 0; i < this.foodMap.length; ++i)
       {
-        this.target = this.foodMap[i];
-        return;
+        let foodLoc = this.foodMap[i].position;
+        let foodRelative = [Math.abs(foodLoc.x - this.mesh.position.x),
+                            Math.abs(foodLoc.z - this.mesh.position.z)];
+
+        if(foodRelative[0] < this.genesSet.senseArea && foodRelative[1] < this.genesSet.senseArea)
+        {
+          this.target = this.foodMap[i];
+          return;
+        }
+      }
+      if(!this.hasEaten)
+      {
+        this.wander();
+      }
+      else
+      {
+        if(this.energy <= 500)
+        {
+          this.move(spawnLocation);
+        }
+        else
+        {
+          this.wander();
+        }
       }
     }
-    this.wander();
+    else
+    {
+      this.move(spawnLocation);
+    }
+    if(this.hasEaten)
+    {
+      const locationDiff = [Math.abs(spawnLocation.x - this.mesh.position.x),
+                            Math.abs(spawnLocation.z - this.mesh.position.z)];
+      if(locationDiff[0] < 10 && locationDiff[1] < 10)
+      {
+        this.survived = true;
+      }
+    }
   }
   wander()
   {
@@ -152,4 +207,5 @@ export default class Entity extends Vehicle
       return point;
     }
   }
+
 }
