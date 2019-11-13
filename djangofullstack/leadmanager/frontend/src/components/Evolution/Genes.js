@@ -1,14 +1,16 @@
 export default class Genes
 {
-  constructor(speed, senseArea, wanderDistance, mutateRate)
+  constructor(speed, senseArea,smarts, wanderDistance, mutateRate)
   {
     this.speed = speed;
     this.senseArea = senseArea;
+    this.smarts = smarts/10;
     // this.wanderDistance = wanderDistance;
     // this.mutateRate = mutateRate;
     this.mutAmount = 5;
-    this.genes = {speed: speed,
+    this.genes = {speed: speed/10,
                   senseArea: senseArea,
+                  smarts: smarts/10,
                   wanderDistance: wanderDistance,
                   mutateRate: mutateRate,
                   energyExpense: (speed) * (speed)+ (senseArea/30) }
@@ -25,6 +27,7 @@ export default class Genes
   {
     this.genes.speed = this.speed / 10;
     this.genes.senseArea = this.senseArea;
+    this.genes.smarts = this.smarts;
     this.genes.energyExpense = 1.5*(this.genes.speed) + (this.genes.senseArea/10);
   }
   makeGeneMap()
@@ -38,6 +41,7 @@ export default class Genes
     // }
     this.geneMap[0] = "speed";
     this.geneMap[1] = "senseArea";
+    this.geneMap[2] = "smarts";
   }
   mutate()
   {
@@ -57,6 +61,11 @@ export default class Genes
           this.senseArea += mutNum;
           if(this.senseArea <= 30)
             this.senseArea = 30;
+          break;
+        case 2:
+          this.smarts += mutNum;
+          if(this.smarts <= 5)
+            this.smarts = 5;
           break;
       }
       this.updateGenes();

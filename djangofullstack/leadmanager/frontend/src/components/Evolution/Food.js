@@ -10,7 +10,7 @@ export default class Food extends GameEntity
     this.geo = new THREE.BoxBufferGeometry( 5, 5, 5 );
     this.mesh = new THREE.Mesh(this.geo, this.mat);
     //Padding is the distance the food will spawn from the walls
-    const padding = 100;
+    const padding = 60;
     this.mesh.position.x = Math.random() * ((world.worldSize[0][1] - padding) - (world.worldSize[0][0]+padding)) + world.worldSize[0][0]+padding;
     this.mesh.position.z = Math.random() * ((world.worldSize[1][1]-padding) - (world.worldSize[1][0]+padding)) + world.worldSize[1][0]+padding;
     this.mesh.position.y = 0;
@@ -31,6 +31,9 @@ export default class Food extends GameEntity
 
   eat()
   {
+    if(this.eaten)
+      return false;
     this.eaten = true;
+    return true;
   }
 }

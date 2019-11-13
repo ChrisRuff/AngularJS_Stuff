@@ -45,7 +45,7 @@ export class NumberRecognition extends React.Component
     {
       let drawing = this.canvas.current.state.canvas.toDataURL();
       this.props.predictNum({"image":drawing})
-      await this.sleep(500);
+      await this.sleep(1000);
       this.setState({drawing: drawing,
                      prediction: prediction});
       console.log(this.state)

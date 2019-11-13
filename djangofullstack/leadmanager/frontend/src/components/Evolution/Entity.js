@@ -1,6 +1,5 @@
 import {Vehicle, ObstacleAvoidanceBehavior} from "yuka";
 import * as THREE from "three";
-import Genes from "./Genes";
 export default class Entity extends Vehicle
 {
   constructor(foodMap, obstacles, genes, world)
@@ -9,38 +8,18 @@ export default class Entity extends Vehicle
     this.world = world;
 
     //Represent the genes of the entity
-    if(genes == null)
-    {
-      this.genes = new Genes(1, 50, 50, 0.5);
-    }
-    else
-    {
-      this.genes = genes;
-    }
+    this.genes = genes;
+
     //Mutate the genes (only actual changes the genes a percentage of the time)
     this.genes.mutate();
     this.genesSet = this.genes.getGenes();
 
     //Encode a color and size based on the genes
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    var rgbToHex = function (rgb) {
-      var hex = Number(rgb).toString(16);
-      if (hex.length < 2) {
-           hex = "0" + hex;
-      }
-      return hex;
-    };
-    var fullColorHex = function(r,g,b) {
-      var red = rgbToHex(r);
-      var green = rgbToHex(g);
-      var blue = rgbToHex(b);
-      return "#"+red+green+blue;
-    };
-
-    let color = fullColorHex((20 * this.genesSet.speed),
-                               100,
-                               100);
-    let size = new THREE.Vector3(10,
+    let speed = this.genesSet.speed;
+    const color = '#'+Math.floor(Math.abs(speed/10-1)*16777215).toString(16);
+    
+    const size = new THREE.Vector3(10,
                                 (this.genesSet.senseArea-30).toFixed(2),
                                 10)
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -69,8 +48,6 @@ export default class Entity extends Vehicle
     this.mesh.position.y = 0;
 
     //Create an avoidance behavior
-    this.ObstacleAvoidanceBehavior = new ObstacleAvoidanceBehavior(obstacles);
-    this.steering.add(this.ObstacleAvoidanceBehavior);
   }
   update(delta)
   {
@@ -113,9 +90,10 @@ export default class Entity extends Vehicle
       this.mesh.position.z += this.genesSet.speed;
     else
       this.mesh.position.z -= this.genesSet.speed;
+
     if(target != null)
     {
-      let locationDiff = [Math.abs(aim.x - this.mesh.position.x), Math.abs(aim.z- this.mesh.position.z)]
+      const locationDiff = [Math.abs(aim.x - this.mesh.position.x), Math.abs(aim.z- this.mesh.position.z)]
       if(locationDiff[0] < 10 && locationDiff[1] < 10)
       {
         this.eat(target);
@@ -124,21 +102,19 @@ export default class Entity extends Vehicle
   }
   eat(target)
   {
-    if(!target.eaten)
+    if(target.eat())
     {
-      target.eat();
       if(this.hasEaten)
         this.reproduce = true;
       this.hasEaten = true;
-      console.log("ate")
       this.energy += 1000;
-      this.target = null;
     }
+    this.target = null;
   }
   findNextFood()
   {
     const spawnLocation = new THREE.Vector3(this.spawn[0], 0, this.spawn[1]);
-    if(!this.reproduce)
+    if(!this.reproduce && this.foodMap.length > 0)
     {
       for(let i = 0; i < this.foodMap.length; ++i)
       {
@@ -176,7 +152,7 @@ export default class Entity extends Vehicle
     {
       const locationDiff = [Math.abs(spawnLocation.x - this.mesh.position.x),
                             Math.abs(spawnLocation.z - this.mesh.position.z)];
-      if(locationDiff[0] < 10 && locationDiff[1] < 10)
+      if(locationDiff[0] < 5 && locationDiff[1] < 5)
       {
         this.survived = true;
       }
@@ -185,7 +161,7 @@ export default class Entity extends Vehicle
   wander()
   {
     if(this.point == null)
-      this.point = GenRandPoint(this.mesh, this.genesSet.wanderDistance);
+      this.point = GenRandPoint(this.mesh, this.genesSet.wanderDistance, this.genesSet);
 
     let locationDiff = [Math.abs(this.point.x - this.mesh.position.x),
                         Math.abs(this.point.z- this.mesh.position.z)]
@@ -199,8 +175,19 @@ export default class Entity extends Vehicle
     }
 
 
-    function GenRandPoint(mesh, wanderDistance){
+    function GenRandPoint(mesh, wanderDistance, genesSet){
       let pivot = mesh.position;
+
+      //Translate the point slightly more to the middle of the map based on the creatures smarts
+      //Determine which quarter the entity is on
+      let posX = pivot.x > 0;
+      let posZ = pivot.z > 0;
+
+      //Translate the pivot point closer to the center of the map
+      pivot.x += posX ? -genesSet.smarts : genesSet.smarts;
+      pivot.z += posZ ? -genesSet.smarts : genesSet.smarts;
+
+
       let point = new THREE.Vector3(pivot.x + Math.random()*(wanderDistance + wanderDistance) - wanderDistance,
                                      pivot.y,
                                      pivot.z + Math.random()*(wanderDistance + wanderDistance) - wanderDistance);

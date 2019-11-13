@@ -1,10 +1,14 @@
 import React, { Component } from "react";
 import * as THREE from "three";
 import * as YUKA from "yuka";
+
 import Entity from "./Entity";
+import Genes from "./Genes";
 import Food from "./Food";
 import Tree from "./Tree";
 import World from "./World";
+
+import { GUI } from "./GUI";
 import { OrbitControls } from './OrbitControls.js';
 
 class Evolution extends Component
@@ -14,27 +18,42 @@ class Evolution extends Component
     super();
     this.time = new YUKA.Time();
     this.world = new World(500, 500)
+
+    //Number of Trees and Food
     this.numTrees = 75;
-    this.numFood = 100;
+    this.numFood = 50;
+
+    //How many random entities are added each cycle
+    this.noise = 0;
+
+    //Current Cycle/Generation
     this.cycle = 0;
+
+    //Defaults for the Genetics that the user can edit
+    this.Speed = 10;
+    this.SenseArea = 50;
+    this.Smarts = 10;
+    this.WanderDistance = 50;
+    this.MutationRate = 0.10;
   }
   componentDidMount()
   {
     const width = this.mount.clientWidth
     const height = this.mount.clientHeight
-    this.cycleTime = 30;
     //ADD SCENE
     this.scene = new THREE.Scene()
     this.scene.background = new THREE.Color( 0xcccccc );
     this.scene.fog = new THREE.FogExp2(0xcccccc, 0.003);
+
+    //Create the rectangle visualising the world
     const recGeo = new THREE.BoxBufferGeometry(
       this.world.worldSize[0][1]-this.world.worldSize[0][0],
       -30,
       this.world.worldSize[1][1]-this.world.worldSize[1][0]);
     const recMat = new THREE.MeshBasicMaterial({color: 0x5aa00a})
-
     this.rec = new THREE.Mesh(recGeo, recMat);
     this.scene.add(this.rec);
+
     //ADD CAMERA
     this.camera = new THREE.PerspectiveCamera(
       100,
@@ -43,6 +62,8 @@ class Evolution extends Component
       1000
     )
     this.camera.position.set(400,200,0);
+
+
     //ADD RENDERER
     this.renderer = new THREE.WebGLRenderer({ antialias: true })
     this.renderer.setClearColor('#000000')
@@ -52,7 +73,7 @@ class Evolution extends Component
     //GAME SETUP
     this.entityManager= new YUKA.EntityManager();
 
-        //DEFINE MATERIAL AND GEOMETRIES
+    //DEFINE MATERIAL AND GEOMETRIES
     this.treeGeo  = new THREE.CylinderBufferGeometry(0, 10, 30, 4, 1);
     this.treeMat = new THREE.MeshPhongMaterial({ color: 0xffffff, flatShading: true });
 
@@ -64,14 +85,14 @@ class Evolution extends Component
     for(let i = 0; i < this.numTrees; i++)
     {
       //Add the meshs to the scene
-      this.treeGeo.computeBoundingSphere();
-      this.trees[i] = new Tree(this.treeGeo, this.treeMat, this.world);
-      this.trees[i].mesh.boundingRadius = this.treeGeo.boundingSphere.radius;
-      this.scene.add(this.trees[i].mesh);
-      //Add them as entities
-      this.trees[i].setRenderComponent(this.trees[i].mesh, this.sync)
-      this.trees[i].boundingRadius = this.treeGeo.boundingSphere.radius;
-      this.entityManager.add(this.trees[i]);
+      // this.treeGeo.computeBoundingSphere();
+      // this.trees[i] = new Tree(this.treeGeo, this.treeMat, this.world);
+      // this.trees[i].mesh.boundingRadius = this.treeGeo.boundingSphere.radius;
+      // this.scene.add(this.trees[i].mesh);
+      // //Add them as entities
+      // this.trees[i].setRenderComponent(this.trees[i].mesh, this.sync)
+      // this.trees[i].boundingRadius = this.treeGeo.boundingSphere.radius;
+      // this.entityManager.add(this.trees[i]);
     }
 
     //Generate Food
@@ -101,22 +122,37 @@ class Evolution extends Component
 		this.controls.maxDistance = 250;
 		this.controls.maxPolarAngle = Math.PI / 2;
 
+    this.gui = new GUI();
+		this.gui.add(this, 'numFood', 1, 500, 1);
+    this.gui.add(this, 'noise', 0, 25, 1);
+    this.gui.add(this, 'Speed', 0, 50, 1);
+    this.gui.add(this, 'SenseArea', 30, 100, 1);
+    this.gui.add(this, 'Smarts', 0, 100, 1);
+    this.gui.add(this, 'WanderDistance', 10, 100, 1);
+    this.gui.add(this, 'MutationRate', 0.01, 1, 0.01);
+		this.gui.open();
+    console.log(this.gui);
     this.start()
   }
   addEntity(genes)
   {
-    this.entities.push(new Entity(this.food, this.trees, genes, this.world));
-
-    let i = this.entities.length -1;
-    this.scene.add(this.entities[i].mesh);
-    this.entities[i].setRenderComponent(this.entities[i].mesh, this.sync);
-    this.entityManager.add(this.entities[i]);
+    let gene;
+    if(genes == null)
+    {
+      gene = new Genes(this.Speed, this.SenseArea, this.Smarts, this.WanderDistance, this.MutationRate);
+    }
+    const entity = new Entity(this.food, this.trees, genes == null ? gene : genes, this.world);
+    this.entities.push(entity);
+    this.scene.add(entity.mesh);
+    entity.setRenderComponent(entity.mesh, this.sync);
+    this.entityManager.add(entity);
   }
   componentWillUnmount()
   {
-      this.stop()
-      this.mount.removeChild(this.renderer.domElement)
-    }
+    this.gui.close();
+    this.stop()
+    this.mount.removeChild(this.renderer.domElement)
+  }
   start = () =>
   {
     if (!this.frameId) {
@@ -151,10 +187,6 @@ class Evolution extends Component
     //Increments the cycle
     this.cycle++;
 
-    //Recover if the entire population dies off
-    if(this.entities.length == 0)
-      for(let i = 0; i < 10; ++i)
-        this.addEntity();
 
     //Clears all the entities and reproduces all those that were succesful
     //This also keeps those entities that made surived alive
@@ -179,6 +211,12 @@ class Evolution extends Component
     for(let i = 0; i < this.food.length; ++i)
     {
       this.food[i].eaten = true;
+    }
+
+    //Add noise to the population
+    for(let i = 0; i < this.noise; ++i)
+    {
+      this.addEntity();
     }
 
     //Replace the food
@@ -210,7 +248,7 @@ class Evolution extends Component
         this.food.splice(i, 1);
       }
     }
-    if(this.entities.length == 0 || this.roundIsFinished())
+    if(this.roundIsFinished())
     {
       this.reset();
     }
@@ -219,9 +257,13 @@ class Evolution extends Component
   {
     for(let i = 0; i < this.entities.length; ++i)
     {
-      if(!this.entities[i].survived && !this.entities[i].dead)
+      if(!this.entities[i].survived)
+      {
         return false;
+      }
     }
+    if(this.entities.length == 0)
+      return false;
     return true;
   }
   calculateStats()
@@ -229,6 +271,7 @@ class Evolution extends Component
     let sumSpeed = 0;
     let sumSense = 0;
     let sumExpense = 0;
+    let sumSmarts = 0;
     let countReproduce = 0;
     let countSurvived = 0;
     this.stats = {}
@@ -237,6 +280,7 @@ class Evolution extends Component
       sumSpeed += this.entities[i].genes.getGenes().speed;
       sumSense += this.entities[i].genes.getGenes().senseArea;
       sumExpense += this.entities[i].genes.getGenes().energyExpense;
+      sumSmarts += this.entities[i].genes.getGenes().smarts;
       if(this.entities[i].survived)
       {
           if(this.entities[i].reproduce)
@@ -248,6 +292,7 @@ class Evolution extends Component
     }
     this.stats.speedAvg = sumSpeed/this.entities.length;
     this.stats.senseAvg = sumSense/this.entities.length;
+    this.stats.smarts = sumSmarts/this.entities.length;
     this.stats.expenseAvg = sumExpense/this.entities.length;
     this.stats.survived = countSurvived;
     this.stats.reproduced = countReproduce;
@@ -260,14 +305,15 @@ class Evolution extends Component
           style={{ width: window.screen.width, height: window.screen.height-200 }}
           ref={(mount) => { this.mount = mount }}
         >
-        <label style={{paddingRight: '10px'}}>Cycle: {this.cycle}</label>
-        <label style={{paddingRight: '10px'}}>Entities Remaining: {this.entities !== undefined ? this.entities.length : ""}</label>
-        <label style={{paddingRight: '10px'}}>Survived: {this.stats !== undefined ? this.stats.survived : ""}</label>
-        <label style={{paddingRight: '10px'}}>Reproduced: {this.stats !== undefined ? this.stats.reproduced : ""}</label>
+        <label style={{paddingRight: '40px'}}>Cycle: {this.cycle}</label>
+        <label style={{paddingRight: '40px'}}>Entities Remaining: {this.entities !== undefined ? this.entities.length : ""}</label>
+        <label style={{paddingRight: '40px'}}>Survived: {this.stats !== undefined ? this.stats.survived : ""}</label>
+        <label style={{paddingRight: '40px'}}>Reproduced: {this.stats !== undefined ? this.stats.reproduced : ""}</label>
         <br/>
-        <label style={{paddingRight: '10px'}}>Average speed: {this.stats !== undefined ? this.stats.speedAvg.toFixed(2) : ""}</label>
-        <label style={{paddingRight: '10px'}}>Average Sense: {this.stats !== undefined ? this.stats.senseAvg.toFixed(2) : ""}</label>
-        <label style={{paddingRight: '10px'}}>Average Expense: {this.stats !== undefined ? this.stats.expenseAvg.toFixed(2) : ""}</label>
+        <label style={{paddingRight: '20px'}}>Average Speed: {this.stats !== undefined ? this.stats.speedAvg.toFixed(2) : ""}</label>
+        <label style={{paddingRight: '20px'}}>Average Sense: {this.stats !== undefined ? this.stats.senseAvg.toFixed(2) : ""}</label>
+        <label style={{paddingRight: '20px'}}>Average Smarts: {this.stats !== undefined ? this.stats.smarts.toFixed(2) : ""}</label>
+        <label style={{paddingRight: '20px'}}>Average Expense: {this.stats !== undefined ? this.stats.expenseAvg.toFixed(2) : ""}</label>
       </div>
       )
     }
